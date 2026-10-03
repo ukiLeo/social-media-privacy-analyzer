@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowRight, BadgeCheck, BookOpen, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Download, FileText, Fingerprint, Globe2, KeyRound, Lock, Menu, MessageCircle, Shield, ShieldCheck, Sparkles, Target, Users, X, Zap } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -34,13 +34,22 @@ const COLORS = ['#6658d3', '#19a78a', '#f59e0b', '#a1a1aa']
 function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const closeMenu = () => setOpen(false)
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMenu()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open])
   return <div className="app-shell">
     <header className="nav-wrap"><nav className="nav container">
-      <Link to="/" className="brand" onClick={() => setOpen(false)}><span className="brand-mark"><ShieldCheck size={20} /></span><span>privacy<span className="brand-dot">.</span>check</span></Link>
-      <button className="menu-btn" onClick={() => setOpen(!open)} aria-label="Toggle navigation">{open ? <X /> : <Menu />}</button>
-      <div className={`nav-links ${open ? 'nav-open' : ''}`}>
-        {[['/', 'Home'], ['/analyzer', 'Privacy Analyzer'], ['/awareness', 'Awareness Hub'], ['/quiz', 'Cyber Quiz'], ['/insights', 'Community Insights'], ['/about', 'About']].map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)} className={location.pathname === to ? 'active' : ''}>{label}</NavLink>)}
-        <Link to="/analyzer" className="nav-cta" onClick={() => setOpen(false)}>Start assessment <ArrowRight size={16} /></Link>
+      <Link to="/" className="brand" onClick={closeMenu}><span className="brand-mark"><ShieldCheck size={20} /></span><span>privacy<span className="brand-dot">.</span>check</span></Link>
+      <button className="menu-btn" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="primary-navigation">{open ? <X /> : <Menu />}</button>
+      <div className={`nav-links ${open ? 'nav-open' : ''}`} id="primary-navigation">
+        {[['/', 'Home'], ['/analyzer', 'Privacy Analyzer'], ['/awareness', 'Awareness Hub'], ['/quiz', 'Cyber Quiz'], ['/insights', 'Community Insights'], ['/about', 'About']].map(([to, label]) => <NavLink key={to} to={to} onClick={closeMenu} className={location.pathname === to ? 'active' : ''}>{label}</NavLink>)}
+        <Link to="/analyzer" className="nav-cta" onClick={closeMenu}>Start assessment <ArrowRight size={16} /></Link>
       </div>
     </nav></header>
     <main>{children}</main>
